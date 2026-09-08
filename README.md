@@ -20,6 +20,16 @@ npm run dev
 
 ## 目录与开发模式
 
+### 发布时自动构建文档站
+
+工作流 `.github/workflows/docs-release.yml` 监听 GitHub Release 的 **published** 事件（包括预发布版本）。推送这些配置后，进入仓库 **Releases → Draft a new release**，选择包含工作流的提交或标签并发布，即可自动安装依赖、执行 `npm run build:docs`，生成 `apps/docs/dist`。
+
+构建成功后，`yancraft-docs-dist.tar.gz` 会附加到该 Release 的 **Assets**，同时作为 Actions artifact 保留 30 天。解压后可部署到静态服务器；此流程不自动发布 npm 包，也不将 dist 提交回源码仓库。
+
+也可在 **Actions → Build docs release → Run workflow** 手动构建（工作流需先进入默认分支）。手动运行仅上传 Actions artifact，不附加到 Release。普通 commit / push 不触发构建；构建失败可在 Actions 日志中查看并重跑。
+
+本地验证：`npm run build:docs`。Release 发布时使用该标签对应的源码，请确保标签包含工作流及所需修改。
+
 ```text
 apps/docs/                 Vite + Vue 文档工作台
   src/catalog.ts           组件目录、说明、API、源码引用

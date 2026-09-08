@@ -1,0 +1,52 @@
+name: Build docs release
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout release source
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Build documentation
+        run: npm run build:docs
+      - name: Archive documentation
+        run: tar -czf yancraft-docs-dist.tar.gz -C apps/docs/dist .
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: yancraft-docs-dist
+          path: yancraft-docs-dist.tar.gz
+          if-no-files-found: error
+          retention-days: 30
+
+  attach-release:
+    if: github.event_name == 'release'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: yancraft-docs-dist
+      - name: Attach documentation to release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: gh release upload "$RELEASE_TAG" yancraft-docs-dist.tar.gz --clobber

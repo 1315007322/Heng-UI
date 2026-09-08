@@ -2,7 +2,7 @@
 
 来源是 mas-mahler 的 asTaskGantt 时间轴、任务条、班次表头、可见区域计算与拖拽控制器。原项目代码未修改，Oinone 查询、Widget 注册、场景存储、编辑会话和工单弹窗未搬入组件库。
 
-工作台入口：侧栏 GanttChart 或组件总览中的甘特图入口，地址 `#gantt/button`。
+工作台入口：侧栏 GanttChart 或组件总览中的甘特图入口，地址 `#components/gantt`。
 
 ## 数据契约与受控更新
 

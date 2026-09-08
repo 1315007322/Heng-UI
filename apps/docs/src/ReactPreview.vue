@@ -4,7 +4,7 @@ import { createRoot, type Root } from 'react-dom/client'
 import { createElement, type ComponentType } from 'react'
 import { ActionButton, StatCard, EmptyState } from '@yancraft/react'
 import type { ComponentId } from './catalog'
-const props = defineProps<{ componentId: ComponentId; componentProps: Record<string, unknown> }>()
+const props = defineProps<{ componentId: Exclude<ComponentId, 'gantt'>; componentProps: Record<string, unknown> }>()
 const emit = defineEmits<{ action: [] }>()
 const host = ref<HTMLDivElement>()
 let root: Root | undefined
