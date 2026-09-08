@@ -1,0 +1,38 @@
+{
+  "name": "yancraft-ui-workspace",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev -w @yancraft/docs",
+    "build": "npm run build -w @yancraft/vue && npm run build -w @yancraft/react && npm run build -w @yancraft/docs",
+    "typecheck": "vue-tsc --noEmit && tsc -p packages/react/tsconfig.json --noEmit",
+    "test": "vitest run",
+    "check": "npm run typecheck && npm test && npm run build && npm run test:packages",
+    "test:packages": "node scripts/verify-packages.mjs",
+    "pack:check": "npm pack -w @yancraft/vue --dry-run && npm pack -w @yancraft/react --dry-run",
+    "changeset": "changeset",
+    "version-packages": "changeset version",
+    "release": "npm run check && changeset publish",
+    "test:e2e": "playwright test"
+  },
+  "devDependencies": {
+    "@changesets/cli": "^2.29.0",
+    "@playwright/test": "^1.55.0",
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-vue": "^6.0.0",
+    "@vue/test-utils": "2.4.6",
+    "jsdom": "^26.0.0",
+    "typescript": "~5.9.2",
+    "vite": "^7.1.0",
+    "vite-plugin-dts": "^4.5.4",
+    "vitest": "^3.2.0",
+    "vue-tsc": "^3.0.0"
+  }
+}

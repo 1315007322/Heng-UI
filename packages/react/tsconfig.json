@@ -1,0 +1,5 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": { "paths": { "@yancraft/vue": ["packages/vue/src/index.ts"] } },
+  "include": ["src/**/*.tsx", "src/**/*.ts", "../../apps/docs/src/env.d.ts"]
+}

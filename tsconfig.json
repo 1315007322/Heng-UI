@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "strict": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "types": ["vite/client", "node"],
+    "jsx": "react-jsx",
+    "baseUrl": ".",
+    "paths": {
+      "@yancraft/vue": ["packages/vue/src/index.ts"],
+      "@yancraft/react": ["packages/react/src/index.tsx"]
+    }
+  },
+  "include": ["apps/**/*.ts", "apps/**/*.vue", "packages/vue/src/**/*.ts", "packages/vue/src/**/*.vue", "tests/**/*.ts"]
+}
