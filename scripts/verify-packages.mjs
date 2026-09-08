@@ -27,7 +27,7 @@ writeFileSync(join(fixture, 'main.tsx'), `
 import { createApp, h } from 'vue'
 import { createRoot } from 'react-dom/client'
 import { ActionButton, type ActionButtonProps } from '@yancraft/vue'
-import { ActionButton as ReactButton } from '@yancraft/react'
+import { ActionButton as ReactButton, GanttChart as ReactGantt } from '@yancraft/react'
 import '@yancraft/vue/style.css'
 import 'element-plus/dist/index.css'
 const valid: ActionButtonProps = { label: 'Vue package', ui: 'element' }
@@ -38,7 +38,7 @@ void invalid
 const invalidReact = <ReactButton variant="not-a-variant" />
 void invalidReact
 createApp({ render: () => h(ActionButton, valid) }).mount('#vue')
-createRoot(document.getElementById('react')!).render(<ReactButton ui="ant" label="React package" />)
+createRoot(document.getElementById('react')!).render(<><ReactButton ui="ant" label="React package" /><ReactGantt rows={[]} start="2026-09-08 00:00" end="2026-09-09 00:00" /></>)
 `)
 execFileSync(process.execPath, [resolve(workspace, 'node_modules/typescript/bin/tsc'), '-p', fixture], { stdio: 'inherit' })
 await build({ root: fixture, configFile: false, plugins: [vue()], logLevel: 'warn', build: { outDir: 'dist', chunkSizeWarningLimit: 1200 } })

@@ -1,0 +1,524 @@
+.yc-gantt-timeline {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  flex: 1 1 auto;
+  // 横纵滚动都收口在甘特视口内，避免内容高度继续撑开外层页面。
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-color: #9ba9ba #eef2f6;
+  scrollbar-gutter: stable;
+
+  &::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #eef2f6;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    border: 3px solid #eef2f6;
+    border-radius: 8px;
+    background: #9ba9ba;
+    background-clip: padding-box;
+  }
+}
+
+.yc-gantt-timeline__canvas,
+.yc-gantt-timeline__body {
+  position: relative;
+  min-width: 100%;
+  box-sizing: border-box;
+}
+
+.yc-gantt-timeline__row {
+  position: absolute;
+  left: 0;
+  box-sizing: border-box;
+  border-bottom: 1px solid #e4ebf2;
+}
+
+/**
+ * 资源行少于可视区高度时，用独立底板补齐固定列，避免时间轴网格和禁用遮罩从标签列下方露出。
+ * sticky 只负责横向固定，真实资源标签使用更高层级覆盖在底板之上。
+ */
+.yc-gantt-timeline__row-label-backdrop {
+  position: sticky;
+  z-index: 4;
+  top: 0;
+  left: 0;
+  height: 100%;
+  box-sizing: border-box;
+  border-right: 1px solid #dce3ea;
+  background: #fff;
+  box-shadow: 2px 0 4px rgba(31, 56, 88, 0.04);
+  pointer-events: none;
+}
+
+.yc-gantt-timeline__row-label {
+  position: sticky;
+  z-index: 5;
+  left: 0;
+  display: flex;
+  box-sizing: border-box;
+  padding: 0 12px;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  color: #34445b;
+  border-right: 1px solid #dce3ea;
+  background: #fff;
+  box-shadow: 2px 0 4px rgba(31, 56, 88, 0.04);
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.yc-gantt-timeline__row-label-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.yc-gantt-timeline__resource-state {
+  flex: 0 0 auto;
+  margin-left: 8px;
+  padding: 1px 5px;
+  color: #a22d35;
+  border: 1px solid rgba(194, 54, 64, 0.3);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.82);
+  font-size: 10px;
+  font-weight: 650;
+
+  &--available {
+    color: #177245;
+    border-color: rgba(38, 145, 88, 0.32);
+  }
+}
+
+.yc-gantt-timeline__row-track {
+  position: absolute;
+  top: 0;
+  box-sizing: border-box;
+  overflow: hidden;
+  background-color: #fff;
+  background-image:
+    repeating-linear-gradient(
+      to right,
+      transparent 0,
+      transparent calc(var(--gantt-hour-width) - 1px),
+      #e8edf3 calc(var(--gantt-hour-width) - 1px),
+      #e8edf3 var(--gantt-hour-width)
+    ),
+    repeating-linear-gradient(
+      to right,
+      transparent 0,
+      transparent calc(var(--gantt-day-width) - 1px),
+      #d5dee8 calc(var(--gantt-day-width) - 1px),
+      #d5dee8 var(--gantt-day-width)
+    );
+}
+
+.yc-gantt-timeline__row--alternate {
+  .yc-gantt-timeline__row-label,
+  .yc-gantt-timeline__row-track {
+    background-color: #fbfcfd;
+  }
+}
+
+.yc-gantt-timeline__row:hover {
+  .yc-gantt-timeline__row-label,
+  .yc-gantt-timeline__row-track {
+    background-color: #f4f8fd;
+  }
+}
+
+/** 拖动正常工单时标出全部可用产线；背景色和文字徽标共同表达状态，避免只依赖颜色。 */
+.yc-gantt-timeline__row--resource-available {
+  .yc-gantt-timeline__row-label,
+  .yc-gantt-timeline__row-track {
+    background-color: #edf9f2;
+  }
+}
+
+.yc-gantt-timeline__row--resource-unavailable {
+  .yc-gantt-timeline__row-label,
+  .yc-gantt-timeline__row-track {
+    background-color: #fff1f1;
+  }
+}
+
+.yc-gantt-timeline__row--drag-target.yc-gantt-timeline__row--resource-available {
+  .yc-gantt-timeline__row-label,
+  .yc-gantt-timeline__row-track {
+    box-shadow: inset 0 0 0 2px #2d9b62;
+  }
+}
+
+.yc-gantt-timeline__row--drag-target.yc-gantt-timeline__row--resource-unavailable {
+  .yc-gantt-timeline__row-label,
+  .yc-gantt-timeline__row-track {
+    box-shadow: inset 0 0 0 2px #d64550;
+  }
+}
+
+.yc-gantt-timeline__drag-layer {
+  position: absolute;
+  z-index: 8;
+  top: 0;
+  bottom: 0;
+  overflow: hidden;
+  // 遮罩需要接收悬浮以显示 title，同时拦截禁用区域内的右键和指针操作。
+  pointer-events: none;
+}
+
+.yc-gantt-timeline__drag-preview {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  box-sizing: border-box;
+  padding: 0 8px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  box-shadow: 0 7px 20px rgba(30, 50, 78, 0.24);
+  opacity: 0.82;
+  will-change: transform, width;
+
+  > span {
+    overflow: hidden;
+    font-size: 11px;
+    font-weight: 650;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  > small {
+    position: absolute;
+    bottom: calc(100% + 7px);
+    left: 0;
+    min-width: max-content;
+    padding: 5px 8px;
+    color: #fff;
+    border-radius: 4px;
+    background: #243247;
+    box-shadow: 0 4px 12px rgba(26, 44, 68, 0.22);
+    font-size: 11px;
+    font-weight: 500;
+  }
+
+  &[data-allowed='false'] {
+    border-color: #dc3f45 !important;
+    background: #fff0f0 !important;
+    color: #b4232a !important;
+    box-shadow: 0 0 0 2px rgba(220, 63, 69, 0.18), 0 7px 20px rgba(30, 50, 78, 0.2);
+  }
+}
+
+.yc-gantt-timeline__empty {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: flex;
+  height: 180px;
+  align-items: center;
+  justify-content: center;
+  color: #8a98aa;
+  background-image: repeating-linear-gradient(to right, transparent 0, transparent 22px, #edf1f5 23px);
+  font-size: 12px;
+}
+
+.yc-gantt-timeline__unavailable-segment {
+  position: absolute;
+  // 位于甘特条下方：禁用空白区由遮罩拦截，正常甘特条仍可接收拖拽和右键。
+  z-index: 1;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  box-sizing: border-box;
+  padding: 10px 4px;
+  align-items: flex-start;
+  justify-content: center;
+  overflow: hidden;
+  border-right: 1px solid rgba(164, 72, 64, 0.42);
+  border-left: 1px solid rgba(164, 72, 64, 0.42);
+  background: repeating-linear-gradient(135deg, rgba(180, 72, 64, 0.14) 0 6px, rgba(180, 72, 64, 0.07) 6px 12px);
+  color: #8e3f39;
+  font-size: 10px;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+  pointer-events: auto;
+  text-align: center;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.72);
+
+  span {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    opacity: 0.72;
+  }
+
+  &:hover span {
+    position: relative;
+    z-index: 1;
+    max-width: min(220px, 100%);
+    padding: 3px 7px;
+    border: 1px solid rgba(142, 63, 57, 0.24);
+    border-radius: 999px;
+    background: rgba(255, 250, 249, 0.96);
+    box-shadow: 0 3px 10px rgba(85, 40, 36, 0.16);
+    opacity: 1;
+  }
+}
+
+.yc-gantt-timeline__tooltip {
+  position: fixed;
+  z-index: 2100;
+  max-width: 320px;
+  border: 1px solid #d9e2ec;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 8px 24px rgba(31, 50, 76, 0.18);
+  pointer-events: none;
+}
+
+body.yc-gantt-is-dragging {
+  cursor: grabbing !important;
+  user-select: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .yc-gantt-timeline__drag-preview {
+    will-change: auto;
+  }
+}
+
+.yc-gantt-time-header {
+  position: sticky;
+  z-index: 10;
+  top: 0;
+  box-sizing: border-box;
+  color: #405168;
+  border-bottom: 1px solid #d9e2ec;
+  background: #f8fafc;
+}
+
+.yc-gantt-time-header__corner {
+  position: sticky;
+  z-index: 13;
+  left: 0;
+  display: flex;
+  height: 100%;
+  box-sizing: border-box;
+  align-items: center;
+  justify-content: center;
+  color: #34445b;
+  border-right: 1px solid #dce3ea;
+  background: #fff;
+  box-shadow: 2px 0 4px rgba(31, 56, 88, 0.05);
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.yc-gantt-time-header__axis {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+.yc-gantt-time-header__dates,
+.yc-gantt-time-header__shifts,
+.yc-gantt-time-header__hours {
+  position: absolute;
+  right: 0;
+  left: 0;
+}
+
+.yc-gantt-time-header__dates {
+  top: 0;
+  height: 44px;
+  background: #f3f5f7;
+}
+
+.yc-gantt-time-header__hours {
+  top: 72px;
+  height: 36px;
+  background: #fbfcfd;
+}
+
+.yc-gantt-time-header__shifts {
+  top: 44px;
+  height: 28px;
+  border-top: 1px solid #dfe8e8;
+  border-bottom: 1px solid #dfe8e8;
+  background: #f4f8f8;
+}
+
+.yc-gantt-time-header__date,
+.yc-gantt-time-header__hour {
+  position: absolute;
+  display: flex;
+  box-sizing: border-box;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.yc-gantt-time-header__date {
+  height: 44px;
+  color: #46556a;
+  border-right: 1px solid #d8dee6;
+  background: rgba(63, 78, 96, 0.035);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.yc-gantt-time-header__date:nth-child(even) {
+  background: rgba(63, 78, 96, 0.075);
+}
+
+.yc-gantt-time-header__hour {
+  height: 36px;
+  color: #526581;
+  border-right: 1px solid #e4eaf0;
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.yc-gantt-time-header__shift {
+  position: absolute;
+  display: flex;
+  box-sizing: border-box;
+  height: 28px;
+  padding: 0 7px;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  color: #24645f;
+  border-right: 1px solid rgba(42, 123, 115, 0.34);
+  border-left: 1px solid rgba(42, 123, 115, 0.2);
+  background: linear-gradient(180deg, rgba(82, 173, 162, 0.2), rgba(82, 173, 162, 0.1));
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.yc-gantt-task-bar {
+  position: absolute;
+  top: 5px;
+  z-index: 2;
+  display: flex;
+  height: 22px;
+  min-width: 3px;
+  box-sizing: border-box;
+  align-items: stretch;
+  overflow: hidden;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  transition: filter 120ms ease, box-shadow 120ms ease, opacity 120ms ease;
+
+  &:hover,
+  &:focus-visible {
+    z-index: 4;
+    filter: saturate(1.08);
+    outline: 2px solid rgba(22, 119, 255, 0.28);
+    outline-offset: 1px;
+  }
+}
+
+.yc-gantt-task-bar--active {
+  opacity: 0.2;
+}
+
+.yc-gantt-task-bar--readonly {
+  cursor: default;
+}
+
+.yc-gantt-task-bar__content {
+  display: flex;
+  min-width: 0;
+  padding: 0 8px;
+  flex: 1 1 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  overflow: hidden;
+  line-height: 1;
+  white-space: nowrap;
+
+  strong,
+  small {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  strong {
+    font-size: 11px;
+    font-weight: 650;
+  }
+
+  small {
+    font-size: 10px;
+    opacity: 0.78;
+  }
+}
+
+.yc-gantt-task-bar__resize-handle {
+  position: relative;
+  z-index: 2;
+  width: 6px;
+  flex: 0 0 6px;
+  cursor: ew-resize;
+  background: rgba(255, 255, 255, 0.12);
+
+  &::after {
+    position: absolute;
+    top: 5px;
+    bottom: 5px;
+    width: 1px;
+    content: '';
+    background: currentColor;
+    opacity: 0.45;
+  }
+}
+
+.yc-gantt-task-bar__resize-handle--start::after {
+  left: 2px;
+}
+
+.yc-gantt-task-bar__resize-handle--end::after {
+  right: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .yc-gantt-task-bar {
+    transition: none;
+  }
+}
+
+.yc-gantt-task-tooltip {
+  display: flex;
+  min-width: 220px;
+  padding: 5px;
+  flex-direction: column;
+  gap: 4px;
+  color: #243247;
+
+  span,
+  small {
+    color: #6b7b91;
+  }
+}

@@ -22,3 +22,5 @@ ActionButton props: label, ui (ant / element), variant (primary / default / dang
 StatCard props: title, value, change, description. Sparkline is decorative. Theme variables: --ak-surface, --ak-border, --ak-text, --ak-muted.
 
 EmptyState props: title, description, actionLabel (empty string hides action), ui. Event: action().
+
+GanttChart props: rows (`{ id, label, tasks }[]`), start, end, height, zoomPercent, readonly, rowHeight, labelWidth, snapMinutes, minimumDurationMinutes, allowOverlap, shifts, unavailableTimeRanges. Tasks require globally unique id, label, start and end; optional readonly, resizable, allowedRowIds, style and data. Uses browser-local time, no timezone suffix. Events: task-change, change-rejected, task-contextmenu, area-contextmenu. The parent owns data and persistence; applyGanttTaskChange(rows, change) performs an immutable update after saving. No Oinone or business API dependencies. Vue toolbar slot and scrollToTime(dateTime) ref method are supported. Import the package CSS for styles.

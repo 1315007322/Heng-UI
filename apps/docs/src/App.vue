@@ -6,13 +6,15 @@ import { ArrowUpRight, ArrowRight, Box, BookOpen, Check, ChevronRight, Code2, Co
 import ReactPreview from './ReactPreview.vue'
 import { catalog, type ComponentId } from './catalog'
 import ChangelogPage from './ChangelogPage.vue'
+import GanttPlayground from './GanttPlayground.vue'
 import { History } from 'lucide-vue-next'
 
-type Page = 'components' | 'guide' | 'release' | 'changelog'
-const pageTitles: Record<Page, string> = { components: '组件总览', guide: '开发指南', release: '构建与发布', changelog: '发版日志' }
+type Page = 'components' | 'guide' | 'release' | 'changelog' | 'gantt'
+const pageTitles: Record<Page, string> = { components: '组件总览', guide: '开发指南', release: '构建与发布', changelog: '发版日志', gantt: '资源甘特图' }
 const page = ref<Page>('components')
 const selected = ref<ComponentId>('button')
 const query = ref('')
+const showGanttEntry = computed(() => ['全部组件', '数据展示'].includes(filter.value) && 'ganttchart 资源甘特图 排程 拖拽'.includes(query.value.trim().toLowerCase()))
 const filter = ref('全部组件')
 const tab = ref('交互预览')
 const ui = ref<UiLibrary>('ant')
@@ -45,7 +47,7 @@ function choose(id: ComponentId) { selected.value = id; page.value = 'components
 function reset() { label.value = '创建项目'; variant.value = 'primary'; size.value = 'default'; loading.value = false; disabled.value = false; statValue.value = '128,640'; change.value = 12.8; title.value = '这里还没有内容'; description.value = '从第一个项目开始，让想法发生。'; actionLabel.value = '创建项目' }
 function navigate(next: Page) { page.value = next; mobileNav.value = false }
 function keyboard(e: KeyboardEvent) { if (e.key === '/' && !['INPUT', 'TEXTAREA', 'SELECT'].includes((e.target as HTMLElement).tagName)) { e.preventDefault(); page.value = 'components'; search.value?.focus() } if (e.key === 'Escape') { mobileNav.value = false; search.value?.blur() } }
-function readHash() { const [p, id] = location.hash.slice(1).split('/'); if (['components','guide','release','changelog'].includes(p)) page.value = p as Page; if (catalog.some(c => c.id === id)) selected.value = id as ComponentId }
+function readHash() { const [p, id] = location.hash.slice(1).split('/'); if (['components','guide','release','changelog','gantt'].includes(p)) page.value = p as Page; if (catalog.some(c => c.id === id)) selected.value = id as ComponentId }
 watch([page, selected], () => { history.replaceState(null, '', `#${page.value}/${selected.value}`) })
 onMounted(() => { readHash(); window.addEventListener('keydown', keyboard); window.addEventListener('hashchange', readHash) })
 onBeforeUnmount(() => { clearTimeout(toastTimer); window.removeEventListener('keydown', keyboard); window.removeEventListener('hashchange', readHash) })
@@ -57,15 +59,16 @@ onBeforeUnmount(() => { clearTimeout(toastTimer); window.removeEventListener('ke
       <a class="brand" href="#components/button" @click="navigate('components')"><span class="brand-mark"><Layers :size="23" /></span><span>YanCraft UI<span class="brand-dot">.</span></span></a>
       <div class="workspace-label">YANCRAFT / COMPONENTS <span>01</span></div>
       <div class="side-section">工作空间</div>
-      <button :class="['nav-item', { active: page === 'components' }]" @click="navigate('components')"><LayoutGrid :size="17" />组件总览<span class="nav-count">03</span></button>
+      <button :class="['nav-item', { active: page === 'components' }]" @click="navigate('components')"><LayoutGrid :size="17" />组件总览<span class="nav-count">04</span></button>
       <button :class="['nav-item', { active: page === 'guide' }]" @click="navigate('guide')"><BookOpen :size="17" />开发指南<ArrowUpRight :size="13" class="nav-tail" /></button>
       <button :class="['nav-item', { active: page === 'release' }]" @click="navigate('release')"><Package :size="17" />构建与发布</button>
       <button :class="['nav-item', { active: page === 'changelog' }]" @click="navigate('changelog')"><History :size="17" />发版日志</button>
-      <div class="side-section component-label">组件目录 <span>3</span></div>
+      <div class="side-section component-label">组件目录 <span>4</span></div>
       <div v-for="group in ['通用', '数据展示', '反馈']" :key="group" class="side-group">
         <div class="group-label">{{ group }}</div>
         <button v-for="c in catalog.filter(c => c.category === group)" :key="c.id" :class="['component-link', { chosen: selected === c.id && page === 'components' }]" @click="choose(c.id)"><span class="small-square"></span>{{ c.name }}<span>{{ c.title }}</span></button>
       </div>
+      <button :class="['component-link', { chosen: page === 'gantt' }]" @click="navigate('gantt')"><span class="small-square"></span>GanttChart<span>资源甘特图</span></button>
       <div class="sidebar-bottom"><div class="framework-dots"><span>V</span><span>R</span></div><strong>Thoughtfully written. Carefully built.</strong><p>Vue 驱动 · React 可用</p><button @click="navigate('guide')">了解开发模式 <ArrowRight :size="14" /></button></div>
       <div class="side-footer"><span class="status-dot"></span>本地开发工作台<span>v0.1.0</span></div>
     </aside>
@@ -73,13 +76,15 @@ onBeforeUnmount(() => { clearTimeout(toastTimer); window.removeEventListener('ke
     <div class="main-shell">
       <header class="topbar"><div class="breadcrumb"><button class="mobile-menu icon-button" aria-label="打开导航" @click="mobileNav = true"><Menu :size="20" /></button><span>工作空间</span><ChevronRight :size="13" /><strong>{{ pageTitles[page] }}</strong></div><div class="top-actions"><span class="local-badge"><span class="status-dot"></span> 开发模式</span><a href="https://vuejs.org/guide/introduction.html" target="_blank" rel="noreferrer">Vue 文档 <ExternalLink :size="13" /></a><span class="avatar">Y</span></div></header>
       <main>
-        <template v-if="page === 'components'">
-          <section class="hero"><div><div class="eyebrow"><span></span> THE BUILDING BLOCKS OF YOUR NEXT IDEA</div><h1>好组件，让想法更快发生<span>。</span></h1><p>在这里开发、探索与分享。把重复的工作，变成可复用的积木。</p><div class="hero-meta"><span><Box :size="14" />3 个精选组件</span><i></i><span>Vue 3 + TypeScript</span><i></i><span>支持双 UI 引擎</span></div></div><button class="dark-button" @click="navigate('guide')">开始构建 <ArrowUpRight :size="16" /></button></section>
+        <GanttPlayground v-if="page === 'gantt'" />
+        <template v-else-if="page === 'components'">
+          <section class="hero"><div><div class="eyebrow"><span></span> THE BUILDING BLOCKS OF YOUR NEXT IDEA</div><h1>好组件，让想法更快发生<span>。</span></h1><p>在这里开发、探索与分享。把重复的工作，变成可复用的积木。</p><div class="hero-meta"><span><Box :size="14" />4 个精选组件</span><i></i><span>Vue 3 + TypeScript</span><i></i><span>支持双 UI 引擎</span></div></div><button class="dark-button" @click="navigate('guide')">开始构建 <ArrowUpRight :size="16" /></button></section>
           <section class="catalog-section" aria-label="组件目录">
-            <div class="catalog-toolbar"><div class="filters"><button v-for="f in ['全部组件', '通用', '数据展示', '反馈']" :key="f" :class="{ selected: filter === f }" @click="filter = f">{{ f }}<span v-if="f === '全部组件'">3</span></button></div><label class="search-box"><Search :size="15" /><input ref="search" v-model="query" placeholder="搜索组件…" aria-label="搜索组件" /><button v-if="query" class="icon-button" aria-label="清空搜索" @click="query = ''"><X :size="14" /></button><kbd v-else>/</kbd></label></div>
+            <div class="catalog-toolbar"><div class="filters"><button v-for="f in ['全部组件', '通用', '数据展示', '反馈']" :key="f" :class="{ selected: filter === f }" @click="filter = f">{{ f }}<span v-if="f === '全部组件'">4</span></button></div><label class="search-box"><Search :size="15" /><input ref="search" v-model="query" placeholder="搜索组件…" aria-label="搜索组件" /><button v-if="query" class="icon-button" aria-label="清空搜索" @click="query = ''"><X :size="14" /></button><kbd v-else>/</kbd></label></div>
             <div class="component-grid"><button v-for="c in filtered" :key="c.id" :class="['catalog-card', { selected: selected === c.id }]" @click="choose(c.id)"><div :class="['card-visual', c.id]"><template v-if="c.id === 'button'"><span class="mini-button">＋ 创建项目</span><span class="mini-button secondary">了解更多 <ArrowUpRight :size="12" /></span><MousePointer2 class="visual-cursor" :size="24" fill="#283b30" /></template><template v-else-if="c.id === 'stat'"><div class="mini-stat"><span>总访问量 <span>↗</span></span><strong>128,640 <em>+12.8%</em></strong><svg viewBox="0 0 240 30" fill="none"><path d="M0 28L28 21L48 25L80 12L110 17L139 5L170 12L204 2L240 8" stroke="#78a188" stroke-width="2"/></svg></div></template><template v-else><div class="mini-empty"><PanelTop :size="31" stroke-width="1" /><span>新的可能，从这里开始</span><i></i><i></i></div></template><span class="card-visual-index">0{{ catalog.indexOf(c) + 1 }}</span></div><div class="card-content"><div><h3>{{ c.name }}</h3><span>{{ c.title }}</span><ArrowUpRight :size="16" /></div><p>{{ c.desc }}</p><div class="card-tags"><span>Vue</span><span>React</span><span>{{ c.id === 'stat' ? '独立样式' : 'Antd / Element' }}</span></div></div></button></div>
-            <div v-if="!filtered.length" class="search-empty"><Search :size="24" /><h3>没有找到匹配的组件</h3><p>试试组件名称或中文关键词。</p><button class="light-button" @click="query = ''; filter = '全部组件'">重置筛选</button></div>
+            <div v-if="!filtered.length && !showGanttEntry" class="search-empty"><Search :size="24" /><h3>没有找到匹配的组件</h3><p>试试组件名称或中文关键词。</p><button class="light-button" @click="query = ''; filter = '全部组件'">重置筛选</button></div>
           </section>
+          <button v-if="showGanttEntry" class="gantt-entry" @click="navigate('gantt')"><span><strong>GanttChart · 资源甘特图</strong><small>业务场景提炼 · 虚拟滚动 · 拖拽排程 · Vue / React</small></span><ArrowUpRight :size="20" /></button>
           <section class="playground" aria-label="组件详情">
             <div class="section-heading"><div class="heading-icon"><Code2 :size="19" /></div><h2>组件实验室</h2><span>让代码，触手可及。</span><div class="live-label"><span class="status-dot"></span>实时预览</div></div>
             <div class="lab"><div class="lab-header"><div><h3>{{ current.name }} <span>{{ current.title }}</span></h3><p>{{ current.details }}</p></div><span class="version-tag">v0.1.0</span></div>

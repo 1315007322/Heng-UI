@@ -20,6 +20,7 @@ export const releaseNotes: ReleaseNote[] = [
     summary: '新增发版日志，并统一 YanCraft UI 品牌与组件包命名。',
     packages: ['文档工作台'],
     changes: [{ category: '新增', items: [
+      '新增 GanttChart 通用资源甘特图：提取虚拟时间轴、拖动与缩放能力，支持 Vue / React 预览，业务 API 与编辑会话由调用方接入。',
       '组件库正式命名为 YanCraft UI，统一页面品牌、文档及 @yancraft/vue、@yancraft/react 示例包名。',
       '新增发版日志入口和版本时间线，展示版本概述、更新日期、影响范围与分类变更。',
       '支持按版本查看、展开与收起详情，并提供升级说明的位置。',

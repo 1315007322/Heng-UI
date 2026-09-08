@@ -1,0 +1,36 @@
+<script setup lang="ts">
+import { computed, ref } from 'vue'
+import { GanttChart, applyGanttTaskChange, type GanttTaskChange, type GanttTaskContextMenu, type GanttAreaContextMenu } from '@yancraft/vue'
+import { Copy, RotateCcw, Layers } from 'lucide-vue-next'
+import GanttReactPreview from './GanttReactPreview.vue'
+import { createGanttDemoRows, ganttStart, ganttEnd, ganttShifts, ganttUnavailable } from './ganttDemo'
+const rows = ref(createGanttDemoRows())
+const framework = ref('Vue')
+const zoom = ref(100), readonly = ref(false), allowOverlap = ref(false), showUnavailable = ref(true), large = ref(false)
+const message = ref('拖动任务调整时间，或拖到其他资源行；左右手柄可调整时长。')
+const options = computed(() => ({ rows: rows.value, start: ganttStart, end: ganttEnd, height: 400, zoomPercent: zoom.value, readonly: readonly.value, allowOverlap: allowOverlap.value, shifts: ganttShifts, unavailableTimeRanges: showUnavailable.value ? ganttUnavailable : [], labelWidth: 130 }))
+function change(change: GanttTaskChange) {
+  // Production callers should await their own API before replacing rows.
+  rows.value = applyGanttTaskChange(rows.value, change)
+  message.value = `已应用 ${change.taskId} → ${change.targetRowLabel}，${change.start} ～ ${change.end}`
+}
+function reset() { rows.value = createGanttDemoRows(large.value ? 1000 : 5); message.value = '示例数据已重置' }
+function context(event: GanttTaskContextMenu | GanttAreaContextMenu) { message.value = 'bar' in event ? `任务右键：${event.bar.label}，可由业务方在此打开菜单` : `空白右键：${event.row?.label || '无资源'} ${event.dateTime || ''}` }
+const code = computed(() => framework.value === 'Vue' ? `<script setup lang="ts">\nimport { ref } from 'vue'\nimport { GanttChart, applyGanttTaskChange, type GanttTaskChange } from '@yancraft/vue'\nimport '@yancraft/vue/style.css'\nconst rows = ref([{ id: 'line-a', label: '装配线', tasks: [\n  { id: 'task-1', label: '装配任务', start: '2026-09-08 08:00', end: '2026-09-08 12:00', resizable: true }\n] }])\nfunction onChange(change: GanttTaskChange) {\n  // 实际项目在业务 API 保存成功后更新 rows\n  rows.value = applyGanttTaskChange(rows.value, change)\n}\n<` + `/script>\n<template>\n  <GanttChart :rows="rows" start="2026-09-08 00:00"\n    end="2026-09-10 00:00" @task-change="onChange" />\n</template>` : `'use client'\nimport { useState } from 'react'\nimport { GanttChart, applyGanttTaskChange, type GanttRow } from '@yancraft/react'\nimport '@yancraft/vue/style.css'\nexport default function Example() {\n  const [rows, setRows] = useState<GanttRow[]>([{ id: 'line-a', label: '装配线', tasks: [\n    { id: 'task-1', label: '装配任务', start: '2026-09-08 08:00', end: '2026-09-08 12:00', resizable: true }\n  ] }])\n  return <GanttChart rows={rows} start="2026-09-08 00:00" end="2026-09-10 00:00"\n    onTaskChange={change => setRows(current => applyGanttTaskChange(current, change))} />\n}`)
+async function copy() { try { await navigator.clipboard.writeText(code.value); message.value = '代码已复制' } catch { message.value = '复制失败，请手动选择代码' } }
+</script>
+<template>
+  <section class="hero"><div><div class="eyebrow"><span></span> FROM BUSINESS TO BUILDING BLOCKS</div><h1>GanttChart <span>资源甘特图</span></h1><p>从实际排程界面提取，时间轴与业务流程各司其职。</p><div class="hero-meta"><span><Layers :size="14" />Vue / React</span><i></i><span>虚拟滚动 · 受控数据 · 零业务接口依赖</span></div></div></section>
+  <section class="gantt-lab">
+    <div class="gantt-toolbar"><div class="framework-switch"><button v-for="f in ['Vue','React']" :key="f" :class="{ active: framework === f }" @click="framework = f">{{ f }}</button></div><label>缩放 <select v-model.number="zoom" aria-label="甘特图缩放"><option :value="50">50%</option><option :value="100">100%</option><option :value="200">200%</option></select></label><label><input v-model="readonly" type="checkbox" />只读</label><label><input v-model="allowOverlap" type="checkbox" />允许重叠</label><label><input v-model="showUnavailable" type="checkbox" />禁用时段</label><label><input v-model="large" type="checkbox" @change="reset" />1000 行</label><button @click="reset"><RotateCcw :size="14" />重置数据</button></div>
+    <GanttChart v-if="framework === 'Vue'" v-bind="options" @task-change="change" @change-rejected="message = $event.reason" @task-contextmenu="context" @area-contextmenu="context" />
+    <GanttReactPreview v-else :options="options" @change="change" @reject="message = $event.reason" @context="context" />
+    <p class="gantt-feedback" role="status">{{ message }}</p>
+  </section>
+  <div class="gantt-explanation"><article><h2>组件负责什么</h2><p>日期 / 班次 / 小时表头、横纵虚拟渲染、缩放、拖动、边界调整、目标资源与禁用时段校验。按 Esc 可取消拖动，数据更新和只读状态变化也会取消当前操作。</p></article><article><h2>业务负责什么</h2><p>数据查询、分页、编辑会话、工单表单、保存接口和权限策略。组件只发出变更，由父级决定何时应用。任务 01 仅允许跨到资源 02；任务 03 演示锁定状态。</p></article></div>
+  <div class="code-panel gantt-code"><div class="code-toolbar"><span>{{ framework === 'Vue' ? 'GanttExample.vue' : 'GanttExample.tsx' }}</span><button @click="copy"><Copy :size="14" />复制用法</button></div><pre><code>{{ code }}</code></pre></div>
+  <section class="api-panel gantt-api"><h2>公开 API</h2><div class="table-scroll"><table><thead><tr><th>参数</th><th>说明</th></tr></thead><tbody><tr><td>rows / start / end</td><td>资源与任务数据、时间轴起止范围（必填）。任务 ID 全图唯一。</td></tr><tr><td>readonly / resizable</td><td>全图只读由 props 控制；单任务 readonly / resizable 控制锁定与调整边界。</td></tr><tr><td>height / zoomPercent / rowHeight / labelWidth</td><td>视口高度与布局；默认 420px / 100 / 36px / 160px。</td></tr><tr><td>snapMinutes / minimumDurationMinutes</td><td>吸附粒度和最短时长，均默认 30 分钟。</td></tr><tr><td>allowOverlap / unavailableTimeRanges / shifts</td><td>默认禁止重叠；不可用区间采用 [start, end)；班次可跨夜。</td></tr><tr><td>task.allowedRowIds</td><td>未传时允许跨任意行，空数组仅允许原行；业务可传资源白名单。</td></tr><tr><td>task-change / change-rejected</td><td>提交变更 / 约束拒绝。React 对应 onTaskChange / onChangeRejected。</td></tr><tr><td>task-contextmenu / area-contextmenu</td><td>自定义右键菜单入口，包含鼠标位置与行、任务或时间。</td></tr><tr><td>toolbar / scrollToTime(dateTime)</td><td>Vue 工具栏插槽与 ref 定位方法，React 包装层暂不转发。</td></tr></tbody></table></div><p>时间采用浏览器本地时间，不接受 UTC / 时区后缀。拖动仅支持指针操作；不含键盘移动、依赖连线、树形分组或任务堆叠。详见项目 docs/gantt.md。</p></section>
+</template>
+<style scoped>
+.gantt-lab{padding:20px;border:1px solid #e0e7db;background:#fff;border-radius:10px}.gantt-toolbar{display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin-bottom:18px;font-size:12px;color:#596d50}.gantt-toolbar label,.gantt-toolbar button{display:flex;align-items:center;gap:6px}.gantt-toolbar input{accent-color:#347553}.gantt-toolbar select{border:1px solid #dce4d5;border-radius:4px;padding:5px;background:#fff}.gantt-toolbar>button{margin-left:auto}.gantt-feedback{font-size:12px;color:#526d48;margin:15px 0 0;min-height:22px;overflow-wrap:anywhere}.gantt-explanation{display:grid;grid-template-columns:1fr 1fr;gap:28px;margin:30px 0}.gantt-explanation h2,.gantt-api h2{font-size:16px;font-weight:600}.gantt-explanation p{font-size:12px;color:#65785b;line-height:1.9}.gantt-code{border-radius:8px}.gantt-api{background:#fff;border:1px solid #e1e7dc;border-radius:8px;margin:28px 0 35px}.gantt-api table td:first-child{font-family:monospace;white-space:nowrap}.hero h1>span{font-size:20px;font-weight:400;letter-spacing:0}.gantt-lab :deep(.yc-gantt-chart){border-radius:5px}@media(max-width:760px){.gantt-explanation{grid-template-columns:1fr;gap:8px}.gantt-lab{padding:12px}.gantt-toolbar{gap:12px;font-size:11px}.hero h1>span{display:block;font-size:18px}}
+</style>

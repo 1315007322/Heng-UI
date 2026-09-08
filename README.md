@@ -50,6 +50,8 @@ tests/                     Vue 行为、React 生命周期、端到端验证
 
 ## 内置组件
 
+新增 **GanttChart 资源甘特图**：支持虚拟滚动、任务移动与边界调整、跨行约束、禁用时段、Vue / React 预览。接入与原 Oinone 业务映射见 [甘特图组件文档](docs/gantt.md)。
+
 | 组件 | 用途 | UI 支持 | 事件 |
 | --- | --- | --- | --- |
 | ActionButton | 主 / 次 / 危险按钮、尺寸、加载、禁用 | `ui="ant"` 或 `ui="element"` | Vue `click` / React `onClick` |
