@@ -15,7 +15,7 @@ export const releaseNotes: ReleaseNote[] = [
   {
     version: '0.2.0',
     date: '2026-09-21',
-    status: 'pending',
+    status: 'published',
     title: '让代码与内容，在同一处被认真书写',
     summary: '新增面向主流编程语言与 Markdown 内容的 CodeEditor，并完善 Vue、React 双端接入和组件文档。',
     packages: ['@yancraft/vue', '@yancraft/react', '文档工作台'],
