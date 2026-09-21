@@ -1,16 +1,38 @@
 {
   "name": "@yancraft/react",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "React adapters for YanCraft UI Vue components",
   "type": "module",
   "license": "MIT",
-  "files": ["dist", "README.md"],
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "exports": { ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" } },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
   "sideEffects": false,
-  "scripts": { "build": "vite build", "prepack": "npm run build" },
-  "dependencies": { "@yancraft/vue": "^0.1.0" },
-  "peerDependencies": { "react": "^18.2.0 || ^19.0.0", "react-dom": "^18.2.0 || ^19.0.0", "vue": "^3.5.0", "ant-design-vue": "^4.2.6", "element-plus": "^2.9.0" },
-  "publishConfig": { "access": "public", "registry": "https://registry.npmjs.org/" }
+  "scripts": {
+    "build": "vite build",
+    "prepack": "npm run build"
+  },
+  "dependencies": {
+    "@yancraft/vue": "^0.2.0"
+  },
+  "peerDependencies": {
+    "react": "^18.2.0 || ^19.0.0",
+    "react-dom": "^18.2.0 || ^19.0.0",
+    "vue": "^3.5.0",
+    "ant-design-vue": "^4.2.6",
+    "element-plus": "^2.9.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  }
 }

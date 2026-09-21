@@ -1,6 +1,6 @@
 {
   "name": "@yancraft/vue",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Vue business components with Ant Design Vue and Element Plus renderers",
   "type": "module",
   "license": "MIT",

@@ -70,7 +70,7 @@ onBeforeUnmount(() => { clearTimeout(toastTimer); window.removeEventListener('ke
         <button v-for="c in catalog.filter(c => c.category === group)" :key="c.id" :class="['component-link', { chosen: selected === c.id && page === 'components' }]" @click="choose(c.id)"><span class="small-square"></span>{{ c.name }}<span>{{ c.title }}</span></button>
       </div>
       <div class="sidebar-bottom"><div class="framework-dots"><span>V</span><span>R</span></div><strong>Thoughtfully written. Carefully built.</strong><p>Vue 驱动 · React 可用</p><button @click="navigate('guide')">了解开发模式 <ArrowRight :size="14" /></button></div>
-      <div class="side-footer"><span class="status-dot"></span>本地开发工作台<span>v0.1.0</span></div>
+      <div class="side-footer"><span class="status-dot"></span>本地开发工作台<span>v0.2.0</span></div>
     </aside>
     <button v-if="mobileNav" class="nav-backdrop" aria-label="关闭导航" @click="mobileNav = false"></button>
     <div class="main-shell">
@@ -85,7 +85,7 @@ onBeforeUnmount(() => { clearTimeout(toastTimer); window.removeEventListener('ke
           </section>
           <section class="playground" aria-label="组件详情">
             <div class="section-heading"><div class="heading-icon"><Code2 :size="19" /></div><h2>组件实验室</h2><span>让代码，触手可及。</span><div class="live-label"><span class="status-dot"></span>实时预览</div></div>
-            <div class="lab"><div class="lab-header"><div><h3>{{ current.name }} <span>{{ current.title }}</span></h3><p>{{ current.details }}</p></div><span class="version-tag">v0.1.0</span></div>
+            <div class="lab"><div class="lab-header"><div><h3>{{ current.name }} <span>{{ current.title }}</span></h3><p>{{ current.details }}</p></div><span class="version-tag">v0.2.0</span></div>
               <div class="lab-tabs"><div role="tablist" aria-label="组件信息"><button v-for="t in ['交互预览', '使用代码', 'API 文档', '组件源码']" :key="t" role="tab" :aria-selected="tab === t" :class="{ active: tab === t }" @click="tab = t">{{ t }}</button></div><div class="framework-switch"><button v-for="f in (['Vue', 'React'] as const)" :key="f" :class="{ active: framework === f }" @click="framework = f">{{ f }}</button></div></div>
               <GanttPlayground v-if="selected === 'gantt'" :tab="tab" :framework="framework" />
               <CodeEditorPlayground v-else-if="selected === 'editor'" :tab="tab" :framework="framework" />
