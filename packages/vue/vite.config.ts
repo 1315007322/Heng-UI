@@ -5,6 +5,6 @@ export default defineConfig({
   plugins: [vue(), dts({ tsconfigPath: '../../tsconfig.json', include: ['src/**/*.ts', 'src/**/*.vue'], entryRoot: 'src' })],
   build: {
     lib: { entry: 'src/index.ts', formats: ['es'], fileName: 'index', cssFileName: 'style' },
-    rollupOptions: { external: ['vue', 'ant-design-vue', 'element-plus'] }
+    rollupOptions: { external: id => ['vue', 'ant-design-vue', 'element-plus', 'codemirror', 'markdown-it'].includes(id) || id.startsWith('@codemirror/') }
   }
 })

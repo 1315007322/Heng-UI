@@ -1,7 +1,7 @@
 import { createElement, useEffect, useRef, type CSSProperties } from 'react'
 import { createApp, h, shallowReactive, type Component } from 'vue'
-import { ActionButton as VueActionButton, StatCard as VueStatCard, EmptyState as VueEmptyState, GanttChart as VueGanttChart } from '@yancraft/vue'
-import type { ActionButtonProps, StatCardProps, EmptyStateProps } from '@yancraft/vue'
+import { ActionButton as VueActionButton, StatCard as VueStatCard, EmptyState as VueEmptyState, CodeEditor as VueCodeEditor, GanttChart as VueGanttChart } from '@yancraft/vue'
+import type { ActionButtonProps, StatCardProps, EmptyStateProps, CodeEditorProps } from '@yancraft/vue'
 import type { GanttChartProps, GanttTaskChange, GanttDragRejectedPayload, GanttTaskContextMenu, GanttAreaContextMenu } from '@yancraft/vue'
 
 type HostProps = { className?: string; style?: CSSProperties }
@@ -32,7 +32,8 @@ function bridge<P extends object>(component: Component, name: string) {
 export const ActionButton = bridge<ActionButtonProps & { onClick?: (event: MouseEvent) => void }>(VueActionButton, 'ActionButton')
 export const StatCard = bridge<StatCardProps>(VueStatCard, 'StatCard')
 export const EmptyState = bridge<EmptyStateProps & { onAction?: () => void }>(VueEmptyState, 'EmptyState')
+export const CodeEditor = bridge<CodeEditorProps & { onChange?: (value: string) => void; onFocus?: () => void; onBlur?: () => void }>(VueCodeEditor, 'CodeEditor')
 export const GanttChart = bridge<GanttChartProps & { onTaskChange?: (change: GanttTaskChange) => void; onChangeRejected?: (payload: GanttDragRejectedPayload) => void; onTaskContextmenu?: (payload: GanttTaskContextMenu) => void; onAreaContextmenu?: (payload: GanttAreaContextMenu) => void }>(VueGanttChart, 'GanttChart')
 export { applyGanttTaskChange } from '@yancraft/vue'
 export type { GanttChartProps, GanttTaskChange, GanttRow, GanttTask, GanttShift, GanttUnavailableRange, GanttTaskContextMenu, GanttAreaContextMenu, GanttDragRejectedPayload } from '@yancraft/vue'
-export type { ActionButtonProps, StatCardProps, EmptyStateProps, UiLibrary } from '@yancraft/vue'
+export type { ActionButtonProps, StatCardProps, EmptyStateProps, CodeEditorProps, EditorLanguage, EditorMode, EditorTheme, UiLibrary } from '@yancraft/vue'

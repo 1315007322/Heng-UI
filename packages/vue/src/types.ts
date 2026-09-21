@@ -19,3 +19,18 @@ export interface EmptyStateProps {
   actionLabel?: string
   ui?: UiLibrary
 }
+export type EditorLanguage = 'javascript' | 'typescript' | 'jsx' | 'tsx' | 'json' | 'html' | 'css' | 'markdown' | 'python' | 'java' | 'sql' | 'yaml' | 'shell'
+export type EditorMode = 'edit' | 'split' | 'preview'
+export type EditorTheme = 'dark' | 'light'
+export interface CodeEditorProps {
+  modelValue?: string
+  language?: EditorLanguage
+  readonly?: boolean
+  lineNumbers?: boolean
+  minHeight?: number
+  placeholder?: string
+  tabSize?: number
+  mode?: EditorMode
+  theme?: EditorTheme
+  wordWrap?: boolean
+}

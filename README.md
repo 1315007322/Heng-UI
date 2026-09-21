@@ -67,6 +67,7 @@ tests/                     Vue 行为、React 生命周期、端到端验证
 | ActionButton | 主 / 次 / 危险按钮、尺寸、加载、禁用 | `ui="ant"` 或 `ui="element"` | Vue `click` / React `onClick` |
 | StatCard | 指标与百分比变化展示 | 独立样式 | 无 |
 | EmptyState | 空状态、引导操作，可隐藏按钮 | 双引擎按钮 | Vue `action` / React `onAction` |
+| CodeEditor | 13 种语言编辑与 Markdown 分屏预览 | 独立样式 | Vue `change` / React `onChange` |
 
 StatCard 折线为装饰示意，不代表真实趋势数据。
 

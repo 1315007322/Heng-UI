@@ -10,7 +10,7 @@ test('catalog, real Vue / React previews, source, documentation and mobile layou
   await page.getByRole('textbox', { name: '搜索组件' }).fill('不存在')
   await expect(page.getByText('没有找到匹配的组件')).toBeVisible()
   await page.getByRole('button', { name: '重置筛选' }).click()
-  await expect(page.locator('.catalog-card')).toHaveCount(4)
+  await expect(page.locator('.catalog-card')).toHaveCount(5)
   await page.getByLabel('按钮文案').fill('立即保存')
   await page.locator('.preview-canvas').getByRole('button', { name: '立即保存' }).click()
   await expect(page.getByRole('status')).toContainText('click 事件已触发')
